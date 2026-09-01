@@ -1,0 +1,1494 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>我的工作台 - Life & Study</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --primary: #6366f1;
+    --primary-dark: #4f46e5;
+    --life-bg: linear-gradient(135deg, #fef3c7, #fde68a);
+    --study-bg: linear-gradient(135deg, #dbeafe, #bfdbfe);
+    --card-bg: #ffffff;
+    --text: #1e293b;
+    --text-light: #64748b;
+    --success: #10b981;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+    --border: #e2e8f0;
+    --shadow: 0 2px 12px rgba(0,0,0,0.08);
+    --shadow-lg: 0 8px 30px rgba(0,0,0,0.12);
+  }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    background: #f1f5f9;
+    color: var(--text);
+    min-height: 100vh;
+  }
+  /* ===== 顶部导航 ===== */
+  .top-nav {
+    background: var(--card-bg);
+    padding: 14px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: var(--shadow);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .logo {
+    font-size: 22px;
+    font-weight: 700;
+    background: linear-gradient(90deg, #6366f1, #8b5cf6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .logo span { font-size: 14px; color: var(--text-light); font-weight: 400; margin-left: 8px; }
+  .nav-tabs { display: flex; gap: 4px; }
+  .nav-tab {
+    padding: 10px 22px;
+    border: none;
+    background: transparent;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text-light);
+    transition: all 0.25s;
+  }
+  .nav-tab:hover { background: #f1f5f9; }
+  .nav-tab.active {
+    background: var(--primary);
+    color: white;
+    box-shadow: 0 4px 14px rgba(99,102,241,0.35);
+  }
+  .nav-tab .icon { margin-right: 6px; }
+  .datetime {
+    font-size: 13px;
+    color: var(--text-light);
+    text-align: right;
+  }
+  .datetime .time { font-size: 16px; font-weight: 600; color: var(--text); }
+
+  /* ===== 主体 ===== */
+  .main {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 24px;
+  }
+  .section { display: none; animation: fadeIn 0.4s; }
+  .section.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ===== 卡片通用 ===== */
+  .card {
+    background: var(--card-bg);
+    border-radius: 14px;
+    padding: 20px;
+    box-shadow: var(--shadow);
+  }
+  .card-title {
+    font-size: 17px;
+    font-weight: 600;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .card-title::before {
+    content: '';
+    width: 4px;
+    height: 18px;
+    background: var(--primary);
+    border-radius: 2px;
+    margin-right: 10px;
+    display: inline-block;
+  }
+  .card-title .title-text { display: flex; align-items: center; }
+
+  /* ===== 生活区网格 ===== */
+  .life-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto;
+    gap: 20px;
+  }
+  .life-grid .quadrant-card { grid-column: 1; grid-row: 1; }
+  .life-grid .countdown-card { grid-column: 2; grid-row: 1; }
+  .life-grid .daily-card { grid-column: 1; grid-row: 2; }
+  .life-grid .health-card { grid-column: 2; grid-row: 2; }
+
+  /* ===== 四象限 ===== */
+  .quadrant-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 10px;
+  }
+  .quadrant {
+    border-radius: 10px;
+    padding: 12px;
+    min-height: 140px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 2px solid transparent;
+  }
+  .quadrant:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+  .q1 { background: #fee2e2; border-color: #fca5a5; }
+  .q2 { background: #dbeafe; border-color: #93c5fd; }
+  .q3 { background: #fef3c7; border-color: #fcd34d; }
+  .q4 { background: #e5e7eb; border-color: #d1d5db; }
+  .q-label {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .q1 .q-label { color: #dc2626; }
+  .q2 .q-label { color: #2563eb; }
+  .q3 .q-label { color: #d97706; }
+  .q4 .q-label { color: #4b5563; }
+  .q-task {
+    font-size: 13px;
+    padding: 4px 8px;
+    margin: 3px 0;
+    background: rgba(255,255,255,0.7);
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .q-task.done { text-decoration: line-through; opacity: 0.5; }
+  .q-task button {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: 14px;
+    opacity: 0.6;
+  }
+  .q-task button:hover { opacity: 1; }
+
+  /* ===== 倒计时 ===== */
+  .countdown-list { display: flex; flex-direction: column; gap: 10px; }
+  .countdown-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 14px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #fafafa, #f5f5f5);
+    border-left: 4px solid var(--primary);
+    transition: all 0.2s;
+  }
+  .countdown-item.urgent { border-left-color: var(--danger); background: linear-gradient(135deg, #fef2f2, #fee2e2); }
+  .countdown-item.soon { border-left-color: var(--warning); background: linear-gradient(135deg, #fffbeb, #fef3c7); }
+  .countdown-item .cd-info { flex: 1; }
+  .countdown-item .cd-title { font-weight: 600; font-size: 14px; }
+  .countdown-item .cd-meta { font-size: 12px; color: var(--text-light); margin-top: 3px; }
+  .countdown-item .cd-time {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--primary-dark);
+    font-variant-numeric: tabular-nums;
+  }
+  .countdown-item.urgent .cd-time { color: var(--danger); }
+  .countdown-item .cd-del {
+    border: none;
+    background: transparent;
+    color: var(--text-light);
+    cursor: pointer;
+    font-size: 16px;
+    margin-left: 10px;
+  }
+  .countdown-item .cd-del:hover { color: var(--danger); }
+
+  /* ===== 任务输入表单 ===== */
+  .task-input-area { margin-bottom: 12px; }
+  .input-row { display: flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+  .input-row input, .input-row select, .input-row button {
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 13px;
+    font-family: inherit;
+  }
+  .input-row input:focus, .input-row select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(99,102,241,0.15);
+  }
+  .input-row button {
+    background: var(--primary);
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s;
+  }
+  .input-row button:hover { background: var(--primary-dark); }
+  .input-row button.secondary { background: #f1f5f9; color: var(--text); }
+  .input-row button.secondary:hover { background: #e2e8f0; }
+  .task-name-input { flex: 1; min-width: 180px; }
+
+  /* ===== 每日Tab切换 ===== */
+  .sub-tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 12px;
+    background: #f1f5f9;
+    padding: 4px;
+    border-radius: 10px;
+  }
+  .sub-tab {
+    flex: 1;
+    padding: 6px 10px;
+    border: none;
+    background: transparent;
+    border-radius: 7px;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--text-light);
+    transition: all 0.2s;
+  }
+  .sub-tab.active {
+    background: white;
+    color: var(--text);
+    font-weight: 600;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  }
+  .task-list { display: flex; flex-direction: column; gap: 6px; max-height: 200px; overflow-y: auto; }
+  .task-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    background: #f8fafc;
+    border-radius: 8px;
+    font-size: 13px;
+  }
+  .task-item input[type="checkbox"] {
+    width: 16px; height: 16px; cursor: pointer; accent-color: var(--primary);
+  }
+  .task-item .name { flex: 1; }
+  .task-item.done .name { text-decoration: line-through; color: var(--text-light); }
+  .task-item .tag {
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: #e0e7ff;
+    color: var(--primary-dark);
+  }
+  .task-item .del-btn {
+    border: none; background: transparent; cursor: pointer; color: var(--text-light);
+  }
+  .task-item .del-btn:hover { color: var(--danger); }
+
+  /* ===== 健康助手 ===== */
+  .health-section { margin-bottom: 18px; }
+  .health-section:last-child { margin-bottom: 0; }
+  .health-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .health-header h4 { font-size: 14px; font-weight: 600; }
+  .water-progress {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .water-cup {
+    width: 30px;
+    height: 40px;
+    border-radius: 5px 5px 8px 8px;
+    background: #e0e7ff;
+    border: 2px solid #c7d2fe;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .water-cup.filled {
+    background: linear-gradient(180deg, #60a5fa, #3b82f6);
+    border-color: #2563eb;
+  }
+  .water-cup:hover { transform: translateY(-2px); }
+  .water-info { font-size: 12px; color: var(--text-light); margin-top: 6px; }
+  .water-info .highlight { color: var(--primary-dark); font-weight: 600; }
+  .supplement-list { display: flex; flex-direction: column; gap: 6px; }
+  .supplement-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    background: #fef3c7;
+    border-radius: 8px;
+    font-size: 13px;
+  }
+  .supplement-item button {
+    padding: 4px 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 12px;
+    background: var(--primary);
+    color: white;
+  }
+  .supplement-item.taken { opacity: 0.6; background: #e5e7eb; }
+  .supplement-item.taken button { background: var(--success); }
+  .exercise-bar {
+    height: 20px;
+    background: #e5e7eb;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+  .exercise-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--success), #34d399);
+    border-radius: 10px;
+    transition: width 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .exercise-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+  .exercise-btns button {
+    padding: 5px 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: white;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s;
+  }
+  .exercise-btns button:hover { background: #f1f5f9; border-color: var(--primary); }
+
+  /* ===== 学习区网格 ===== */
+  .study-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto;
+    gap: 20px;
+  }
+  .study-grid .progress-card { grid-column: 1; grid-row: 1; }
+  .study-grid .kaoyan-card { grid-column: 2; grid-row: 1; }
+  .study-grid .tasks-card { grid-column: 1; grid-row: 2; }
+  .study-grid .chaoxing-card { grid-column: 2; grid-row: 2; }
+
+  /* ===== 学习进度 ===== */
+  .course-item {
+    padding: 12px;
+    background: #f8fafc;
+    border-radius: 10px;
+    margin-bottom: 10px;
+  }
+  .course-item:last-child { margin-bottom: 0; }
+  .course-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+  .course-name { font-weight: 600; font-size: 14px; }
+  .course-pct { font-size: 13px; font-weight: 600; color: var(--primary-dark); }
+  .progress-bar {
+    height: 8px;
+    background: #e5e7eb;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    border-radius: 4px;
+    background: linear-gradient(90deg, var(--primary), #8b5cf6);
+    transition: width 0.3s;
+  }
+  .progress-fill.warn { background: linear-gradient(90deg, var(--warning), #fbbf24); }
+  .progress-fill.low { background: linear-gradient(90deg, var(--danger), #f87171); }
+  .course-actions {
+    margin-top: 8px;
+    display: flex;
+    gap: 6px;
+  }
+  .course-actions button {
+    padding: 4px 10px;
+    border: 1px solid var(--border);
+    background: white;
+    border-radius: 5px;
+    font-size: 12px;
+    cursor: pointer;
+  }
+  .course-actions button:hover { border-color: var(--primary); color: var(--primary); }
+
+  /* ===== 考研倒计时 ===== */
+  .kaoyan-main {
+    text-align: center;
+    padding: 20px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-radius: 12px;
+    color: white;
+    margin-bottom: 14px;
+  }
+  .kaoyan-label { font-size: 14px; opacity: 0.9; }
+  .kaoyan-days { font-size: 54px; font-weight: 800; margin: 6px 0; letter-spacing: -2px; }
+  .kaoyan-days .unit { font-size: 20px; font-weight: 400; margin-left: 4px; opacity: 0.9; }
+  .kaoyan-date { font-size: 13px; opacity: 0.85; }
+  .kaoyan-goal {
+    padding: 12px;
+    background: #f5f3ff;
+    border-radius: 10px;
+    text-align: center;
+  }
+  .kaoyan-goal h4 { font-size: 13px; color: var(--text-light); margin-bottom: 4px; }
+  .kaoyan-goal .goal-text { font-size: 16px; font-weight: 700; color: var(--primary-dark); }
+  .kaoyan-goal input {
+    width: 100%;
+    padding: 8px;
+    border: 1px dashed var(--primary);
+    border-radius: 6px;
+    font-size: 14px;
+    text-align: center;
+  }
+  .search-panel {
+    margin-top: 14px;
+    padding: 12px;
+    background: #f8fafc;
+    border-radius: 10px;
+  }
+  .search-panel h4 { font-size: 13px; margin-bottom: 8px; color: var(--text-light); }
+  .search-panel .input-row { margin-bottom: 0; }
+  .quick-links {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+  }
+  .quick-links a {
+    font-size: 12px;
+    padding: 4px 10px;
+    background: #eef2ff;
+    color: var(--primary-dark);
+    text-decoration: none;
+    border-radius: 5px;
+    transition: all 0.2s;
+  }
+  .quick-links a:hover { background: #e0e7ff; }
+
+  /* ===== 学习任务 ===== */
+  .study-task-list { display: flex; flex-direction: column; gap: 8px; }
+  .study-task-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: #f8fafc;
+    border-radius: 8px;
+    border-left: 3px solid var(--primary);
+  }
+  .study-task-item.urgent { border-left-color: var(--danger); }
+  .study-task-item.soon { border-left-color: var(--warning); }
+  .study-task-item input[type="checkbox"] { accent-color: var(--primary); width: 16px; height: 16px; cursor: pointer; }
+  .study-task-item .info { flex: 1; }
+  .study-task-item .st-name { font-size: 14px; font-weight: 500; }
+  .study-task-item .st-meta { font-size: 12px; color: var(--text-light); margin-top: 2px; }
+  .study-task-item.done .st-name { text-decoration: line-through; color: var(--text-light); }
+  .study-task-item .st-del {
+    border: none; background: transparent; color: var(--text-light); cursor: pointer;
+  }
+  .study-task-item .st-del:hover { color: var(--danger); }
+
+  /* ===== 学习通消息 ===== */
+  .chaoxing-panel { position: relative; }
+  .chaoxing-msg {
+    padding: 10px 12px;
+    background: #eff6ff;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    border-left: 3px solid #3b82f6;
+    font-size: 13px;
+  }
+  .chaoxing-msg .msg-title { font-weight: 600; margin-bottom: 3px; }
+  .chaoxing-msg .msg-content { font-size: 12px; color: var(--text-light); line-height: 1.5; }
+  .chaoxing-msg .msg-time { font-size: 11px; color: var(--text-light); margin-top: 4px; }
+  .chaoxing-msg.unread { background: #dbeafe; font-weight: 500; }
+  .chaoxing-msg.unread::before {
+    content: '●';
+    color: var(--danger);
+    margin-right: 6px;
+    font-size: 10px;
+  }
+  .chaoxing-empty {
+    text-align: center;
+    padding: 30px;
+    color: var(--text-light);
+    font-size: 13px;
+  }
+  .refresh-btn {
+    padding: 6px 12px;
+    border: 1px solid var(--border);
+    background: white;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s;
+  }
+  .refresh-btn:hover { border-color: var(--primary); color: var(--primary); }
+
+  /* ===== 模态框 ===== */
+  .modal-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal {
+    background: white;
+    border-radius: 14px;
+    padding: 24px;
+    max-width: 500px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: var(--shadow-lg);
+  }
+  .modal h3 { margin-bottom: 16px; font-size: 18px; }
+  .modal .form-group { margin-bottom: 12px; }
+  .modal label { display: block; font-size: 13px; color: var(--text-light); margin-bottom: 5px; }
+  .modal input, .modal select, .modal textarea {
+    width: 100%;
+    padding: 9px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+  }
+  .modal input:focus, .modal select:focus, .modal textarea:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(99,102,241,0.15);
+  }
+  .modal .btns { display: flex; gap: 10px; justify-content: flex-end; margin-top: 16px; }
+  .modal button {
+    padding: 9px 18px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+  }
+  .modal .btn-confirm { background: var(--primary); color: white; }
+  .modal .btn-confirm:hover { background: var(--primary-dark); }
+  .modal .btn-cancel { background: #f1f5f9; color: var(--text); }
+  .modal .btn-cancel:hover { background: #e2e8f0; }
+
+  /* ===== 滚动条 ===== */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+  /* ===== 响应式 ===== */
+  @media (max-width: 900px) {
+    .life-grid, .study-grid {
+      grid-template-columns: 1fr;
+    }
+    .life-grid > *, .study-grid > * {
+      grid-column: 1 !important;
+      grid-row: auto !important;
+    }
+    .nav-tabs { font-size: 13px; }
+    .datetime { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- 顶部导航 -->
+<nav class="top-nav">
+  <div class="logo">🎯 我的工作台 <span>Life & Study Hub</span></div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="switchSection('life')">🏠 生活区</button>
+    <button class="nav-tab" onclick="switchSection('study')">📚 学习区</button>
+  </div>
+  <div class="datetime">
+    <div class="time" id="nav-time">--:--:--</div>
+    <div id="nav-date">----年--月--日</div>
+  </div>
+</nav>
+
+<div class="main">
+
+  <!-- ============ 生活区 ============ -->
+  <div class="section active" id="section-life">
+    <div class="life-grid">
+
+      <!-- 四象限任务 -->
+      <div class="card quadrant-card">
+        <div class="card-title"><span class="title-text">📋 任务四象限（智能安排）</span></div>
+        <div class="task-input-area">
+          <div class="input-row">
+            <input type="text" class="task-name-input" id="quad-name" placeholder="输入任务名称...">
+            <select id="quad-importance">
+              <option value="urgent-important">紧急·重要 (立即做)</option>
+              <option value="noturgent-important">不紧急·重要 (规划做)</option>
+              <option value="urgent-notimportant">紧急·不重要 (委托做)</option>
+              <option value="noturgent-notimportant">不紧急·不重要 (有时间做)</option>
+            </select>
+            <button onclick="addQuadrantTask()">+ 添加</button>
+          </div>
+        </div>
+        <div class="quadrant-grid">
+          <div class="quadrant q1" onclick="focusQuadrant('q1')">
+            <div class="q-label">🔥 紧急·重要</div>
+            <div id="q1-tasks"></div>
+          </div>
+          <div class="quadrant q2" onclick="focusQuadrant('q2')">
+            <div class="q-label">⭐ 不紧急·重要</div>
+            <div id="q2-tasks"></div>
+          </div>
+          <div class="quadrant q3" onclick="focusQuadrant('q3')">
+            <div class="q-label">⚡ 紧急·不重要</div>
+            <div id="q3-tasks"></div>
+          </div>
+          <div class="quadrant q4" onclick="focusQuadrant('q4')">
+            <div class="q-label">🌙 不紧急·不重要</div>
+            <div id="q4-tasks"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 倒计时 -->
+      <div class="card countdown-card">
+        <div class="card-title"><span class="title-text">⏰ 倒计时安排</span>
+          <button class="secondary" style="border:none;background:#f1f5f9;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:12px;" onclick="openCountdownModal()">+ 添加</button>
+        </div>
+        <div class="countdown-list" id="countdown-list"></div>
+      </div>
+
+      <!-- 日常任务 -->
+      <div class="card daily-card">
+        <div class="card-title"><span class="title-text">✅ Todo 任务清单</span></div>
+        <div class="sub-tabs">
+          <button class="sub-tab active" onclick="switchTodoTab('daily')">每日</button>
+          <button class="sub-tab" onclick="switchTodoTab('short')">短期</button>
+          <button class="sub-tab" onclick="switchTodoTab('long')">长期</button>
+          <button class="sub-tab" onclick="switchTodoTab('occasional')">偶发</button>
+        </div>
+        <div class="task-input-area">
+          <div class="input-row">
+            <input type="text" class="task-name-input" id="todo-input" placeholder="输入任务...">
+            <select id="todo-priority">
+              <option value="high">高优</option>
+              <option value="medium" selected>中优</option>
+              <option value="low">低优</option>
+            </select>
+            <button onclick="addTodoTask()">+ 添加</button>
+          </div>
+        </div>
+        <div class="task-list" id="todo-list"></div>
+      </div>
+
+      <!-- 健康助手 -->
+      <div class="card health-card">
+        <div class="card-title"><span class="title-text">💧 健康助手</span></div>
+
+        <!-- 喝水 -->
+        <div class="health-section">
+          <div class="health-header">
+            <h4>💧 今日喝水</h4>
+            <button class="secondary" style="border:none;background:#f1f5f9;padding:4px 10px;border-radius:5px;cursor:pointer;font-size:11px;" onclick="resetWater()">重置</button>
+          </div>
+          <div class="water-progress" id="water-cups"></div>
+          <div class="water-info">已喝 <span class="highlight" id="water-count">0</span> / 8 杯（约 <span class="highlight" id="water-ml">0</span> ml）</div>
+        </div>
+
+        <!-- 补剂 -->
+        <div class="health-section">
+          <div class="health-header">
+            <h4>💊 补剂提醒</h4>
+            <button class="secondary" style="border:none;background:#f1f5f9;padding:4px 10px;border-radius:5px;cursor:pointer;font-size:11px;" onclick="openSupplementModal()">+ 添加</button>
+          </div>
+          <div class="supplement-list" id="supplement-list"></div>
+        </div>
+
+        <!-- 运动 -->
+        <div class="health-section">
+          <div class="health-header">
+            <h4>🏃 今日运动</h4>
+            <span style="font-size:12px;color:var(--text-light);" id="exercise-summary">0 / 60 分钟</span>
+          </div>
+          <div class="exercise-bar"><div class="exercise-fill" id="exercise-fill" style="width:0%">0%</div></div>
+          <div class="exercise-btns">
+            <button onclick="addExercise(10)">+10 分钟</button>
+            <button onclick="addExercise(30)">+30 分钟</button>
+            <button onclick="addExercise(-30)">-30 分钟</button>
+            <button onclick="resetExercise()">重置</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ============ 学习区 ============ -->
+  <div class="section" id="section-study">
+    <div class="study-grid">
+
+      <!-- 学习进度 -->
+      <div class="card progress-card">
+        <div class="card-title"><span class="title-text">📊 学习进度追踪</span>
+          <button class="secondary" style="border:none;background:#f1f5f9;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:12px;" onclick="openCourseModal()">+ 添加课程</button>
+        </div>
+        <div id="course-list"></div>
+      </div>
+
+      <!-- 考研倒计时 -->
+      <div class="card kaoyan-card">
+        <div class="card-title"><span class="title-text">🎯 考研倒计时</span></div>
+        <div class="kaoyan-main">
+          <div class="kaoyan-label">距离考研还有</div>
+          <div class="kaoyan-days" id="ky-days">--<span class="unit">天</span></div>
+          <div class="kaoyan-date" id="ky-date">设置考试日期</div>
+        </div>
+        <div class="kaoyan-goal">
+          <h4>🎓 目标院校/专业</h4>
+          <div id="ky-goal-display" class="goal-text" style="display:none;"></div>
+          <input type="text" id="ky-goal-input" placeholder="输入你的考研目标..." onkeydown="if(event.key==='Enter')saveKaoyanGoal()">
+        </div>
+        <div class="search-panel">
+          <h4>🔍 考研数据搜索</h4>
+          <div class="input-row">
+            <input type="text" id="ky-search" placeholder="如：计算机 400分 国家线...">
+            <button onclick="searchKaoyan()">搜索</button>
+          </div>
+          <div class="quick-links">
+            <a href="https://yz.chsi.com.cn/" target="_blank">研招网</a>
+            <a href="https://yz.chsi.com.cn/zsml/queryAction.do" target="_blank">专业目录</a>
+            <a href="https://yz.chsi.com.cn/sch/" target="_blank">院校库</a>
+            <a href="https://www.kaoyan.com/fenshu/" target="_blank">历年分数线</a>
+            <a href="https://www.kaoyan.com/baokao/zhangcheng/" target="_blank">招生简章</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- 学习任务 -->
+      <div class="card tasks-card">
+        <div class="card-title"><span class="title-text">📅 学习任务 & 截止提醒</span></div>
+        <div class="task-input-area">
+          <div class="input-row">
+            <input type="text" class="task-name-input" id="st-name" placeholder="任务名称...">
+            <input type="date" id="st-deadline">
+            <select id="st-priority">
+              <option value="high">高</option>
+              <option value="medium" selected>中</option>
+              <option value="low">低</option>
+            </select>
+            <button onclick="addStudyTask()">+ 添加</button>
+          </div>
+        </div>
+        <div class="study-task-list" id="study-task-list"></div>
+      </div>
+
+      <!-- 学习通消息 -->
+      <div class="card chaoxing-card">
+        <div class="card-title"><span class="title-text">📨 学习通消息面板</span>
+          <button class="refresh-btn" onclick="refreshChaoxing()">🔄 刷新</button>
+        </div>
+        <div id="chaoxing-messages"></div>
+        <div style="margin-top:12px;padding-top:12px;border-top:1px dashed var(--border);">
+          <div class="input-row">
+            <input type="text" id="cx-new-title" placeholder="消息标题">
+            <input type="text" id="cx-new-content" placeholder="消息内容...">
+            <button onclick="addChaoxingMsg()">+ 添加</button>
+          </div>
+          <div style="font-size:11px;color:var(--text-light);margin-top:6px;">💡 学习通API需登录Cookie，当前为本地消息面板。可手动添加重要通知。</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<!-- ===== 添加倒计时模态框 ===== -->
+<div class="modal-overlay" id="countdown-modal">
+  <div class="modal">
+    <h3>⏰ 添加倒计时</h3>
+    <div class="form-group">
+      <label>事项名称</label>
+      <input type="text" id="cd-name" placeholder="如：英语四级考试">
+    </div>
+    <div class="form-group">
+      <label>截止/目标时间</label>
+      <input type="datetime-local" id="cd-deadline">
+    </div>
+    <div class="form-group">
+      <label>重要程度</label>
+      <select id="cd-importance">
+        <option value="high">高 ⭐⭐⭐</option>
+        <option value="medium" selected>中 ⭐⭐</option>
+        <option value="low">低 ⭐</option>
+      </select>
+    </div>
+    <div class="btns">
+      <button class="btn-cancel" onclick="closeCountdownModal()">取消</button>
+      <button class="btn-confirm" onclick="confirmCountdown()">确定</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 添加补剂模态框 ===== -->
+<div class="modal-overlay" id="supplement-modal">
+  <div class="modal">
+    <h3>💊 添加补剂</h3>
+    <div class="form-group">
+      <label>名称</label>
+      <input type="text" id="sp-name" placeholder="如：维生素D">
+    </div>
+    <div class="form-group">
+      <label>服用时间</label>
+      <select id="sp-time">
+        <option value="早上">早上</option>
+        <option value="中午">中午</option>
+        <option value="晚上">晚上</option>
+        <option value="随餐">随餐</option>
+      </select>
+    </div>
+    <div class="btns">
+      <button class="btn-cancel" onclick="closeSupplementModal()">取消</button>
+      <button class="btn-confirm" onclick="confirmSupplement()">确定</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 添加课程模态框 ===== -->
+<div class="modal-overlay" id="course-modal">
+  <div class="modal">
+    <h3>📚 添加/编辑课程</h3>
+    <div class="form-group">
+      <label>课程名称</label>
+      <input type="text" id="cr-name" placeholder="如：高等数学">
+    </div>
+    <div class="form-group">
+      <label>当前进度 (%)</label>
+      <input type="range" id="cr-pct" min="0" max="100" value="0" oninput="document.getElementById('cr-pct-val').textContent=this.value+'%'">
+      <span id="cr-pct-val" style="font-size:13px;color:var(--text-light);">0%</span>
+    </div>
+    <div class="btns">
+      <button class="btn-cancel" onclick="closeCourseModal()">取消</button>
+      <button class="btn-confirm" onclick="confirmCourse()">确定</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ================== 状态管理 ==================
+function loadJSON(key, fallback) {
+  try {
+    const raw = localStorage.getItem(key);
+    if (raw === null) return fallback;
+    return JSON.parse(raw);
+  } catch(e) { return fallback; }
+}
+
+const store = {
+  quadrant: loadJSON('ws_quadrant', {
+    'urgent-important': [],
+    'noturgent-important': [],
+    'urgent-notimportant': [],
+    'noturgent-notimportant': []
+  }),
+  countdowns: loadJSON('ws_countdowns', []),
+  todos: loadJSON('ws_todos', []),
+  currentTodoTab: 'daily',
+  waterCups: loadJSON('ws_water', 0),
+  supplements: loadJSON('ws_supplements', []),
+  exercise: loadJSON('ws_exercise', 0),
+  courses: loadJSON('ws_courses', []),
+  kaoyanDate: loadJSON('ws_ky_date', ''),
+  kaoyanGoal: loadJSON('ws_ky_goal', ''),
+  studyTasks: loadJSON('ws_studytasks', []),
+  chaoxingMsgs: loadJSON('ws_chaoxing', []),
+};
+
+function save(key, val) { localStorage.setItem(key, JSON.stringify(val)); }
+function saveAll() {
+  save('ws_quadrant', store.quadrant);
+  save('ws_countdowns', store.countdowns);
+  save('ws_todos', store.todos);
+  save('ws_water', store.waterCups);
+  save('ws_supplements', store.supplements);
+  save('ws_exercise', store.exercise);
+  save('ws_courses', store.courses);
+  save('ws_ky_date', store.kaoyanDate);
+  save('ws_ky_goal', store.kaoyanGoal);
+  save('ws_studytasks', store.studyTasks);
+  save('ws_chaoxing', store.chaoxingMsgs);
+  scheduleSync();
+}
+
+// ====== 后端同步（GitHub API 跨设备） ======
+const GH_OWNER = 'Llljjjjj-1031';
+const GH_REPO = 'workstation-data';
+const GH_FILE = 'data.json';
+const GH_API = `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_FILE}`;
+
+function getGHToken() { return localStorage.getItem('gh_token') || ''; }
+function setGHToken(t) { localStorage.setItem('gh_token', t); }
+
+let _syncTimer = null;
+function scheduleSync() {
+  clearTimeout(_syncTimer);
+  _syncTimer = setTimeout(syncUpload, 800);
+}
+async function syncUpload() {
+  const tok = getGHToken();
+  if (!tok) return;
+  try {
+    let sha = '';
+    try {
+      const res = await fetch(GH_API, { headers: { 'Authorization': `token ${tok}`, 'Accept': 'application/vnd.github.v3+json' } });
+      if (res.ok) { const d = await res.json(); sha = d.sha; }
+    } catch(e) {}
+    const content = btoa(unescape(encodeURIComponent(JSON.stringify(store))));
+    await fetch(GH_API, {
+      method: 'PUT',
+      headers: { 'Authorization': `token ${tok}`, 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'sync', content: content, sha: sha || undefined })
+    });
+  } catch(e) {}
+}
+async function syncLoad() {
+  const tok = getGHToken();
+  if (!tok) return;
+  try {
+    const res = await fetch(`${GH_API}?ref=main`, { headers: { 'Authorization': `token ${tok}`, 'Accept': 'application/vnd.github.v3+json' } });
+    if (res.ok) {
+      const d = await res.json();
+      const remote = JSON.parse(decodeURIComponent(escape(atob(d.content))));
+      if (remote && Object.keys(remote).length > 0) {
+        Object.assign(store, remote);
+      }
+    }
+  } catch(e) {}
+}
+
+// ================== 初始化 ==================
+async function init() {
+  // 首次访问提示输入 GitHub Token（用于跨设备同步）
+  if (!getGHToken()) {
+    const tok = prompt('请输入你的 GitHub Token（用于数据跨设备同步）：\n\n格式如 ghp_xxxx...\n\n获取地址: https://github.com/settings/tokens/new\n勾选 repo 权限即可');
+    if (tok && tok.trim()) { setGHToken(tok.trim()); }
+  }
+  // 优先从后端加载数据（跨设备同步）
+  await syncLoad();
+  // 初始化学习通默认消息
+  if (store.chaoxingMsgs.length === 0) {
+    store.chaoxingMsgs = [
+      { title: '高等数学 作业截止', content: '第三章习题 3.1-3.5 提交截止', time: '2天后 23:59', unread: true },
+      { title: '大学英语 单元测验', content: 'Unit 4 在线测验已发布', time: '3天后', unread: true },
+      { title: '专业课 课程通知', content: '下周三下午上课地点调整为B教302', time: '今天 15:30', unread: false },
+    ];
+  }
+  if (store.supplements.length === 0) {
+    store.supplements = [
+      { name: '维生素D3', time: '早上', taken: false },
+      { name: '蛋白粉', time: '随餐', taken: false },
+    ];
+  }
+  if (store.courses.length === 0) {
+    store.courses = [
+      { name: '高等数学', pct: 35 },
+      { name: '大学英语', pct: 60 },
+      { name: '专业课', pct: 20 },
+    ];
+  }
+  if (!store.kaoyanDate) store.kaoyanDate = getNextKaoyanDate();
+  saveAll();
+  renderAll();
+  setInterval(updateCountdowns, 1000);
+  setInterval(updateTime, 1000);
+}
+
+function getNextKaoyanDate() {
+  // 考研一般在当年12月最后一个周末
+  const now = new Date();
+  let year = now.getFullYear();
+  let examDate = new Date(year, 11, 25); // 12月25日起
+  // 找到当年12月最后一个周六
+  while (examDate.getDay() !== 6) examDate.setDate(examDate.getDate() + 1);
+  if (examDate < now) { year++; examDate = new Date(year, 11, 25); while (examDate.getDay() !== 6) examDate.setDate(examDate.getDate() + 1); }
+  return examDate.toISOString().split('T')[0];
+}
+
+// ================== 导航切换 ==================
+function switchSection(section) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('section-' + section).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// ================== 时间显示 ==================
+function updateTime() {
+  const now = new Date();
+  const pad = n => String(n).padStart(2, '0');
+  document.getElementById('nav-time').textContent = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+  const week = ['日','一','二','三','四','五','六'][now.getDay()];
+  document.getElementById('nav-date').textContent = `${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日 周${week}`;
+}
+
+// ================== 四象限 ==================
+function addQuadrantTask() {
+  const name = document.getElementById('quad-name').value.trim();
+  const type = document.getElementById('quad-importance').value;
+  if (!name) return alert('请输入任务名称');
+  store.quadrant[type].push({ id: Date.now(), name, done: false });
+  document.getElementById('quad-name').value = '';
+  save('ws_quadrant', store.quadrant);
+  renderQuadrant();
+}
+
+function toggleQuadTask(type, id) {
+  const t = store.quadrant[type].find(x => x.id === id);
+  if (t) t.done = !t.done;
+  save('ws_quadrant', store.quadrant);
+  renderQuadrant();
+}
+
+function deleteQuadTask(type, id) {
+  store.quadrant[type] = store.quadrant[type].filter(x => x.id !== id);
+  save('ws_quadrant', store.quadrant);
+  renderQuadrant();
+}
+
+function renderQuadrant() {
+  const typeMap = { 'q1': 'urgent-important', 'q2': 'noturgent-important', 'q3': 'urgent-notimportant', 'q4': 'noturgent-notimportant' };
+  for (const [qid, type] of Object.entries(typeMap)) {
+    const el = document.getElementById(qid + '-tasks');
+    if (!el) continue;
+    if (!store.quadrant) store.quadrant = {};
+    let tasks = store.quadrant[type];
+    if (!Array.isArray(tasks)) tasks = [];
+    store.quadrant[type] = tasks;
+    el.innerHTML = tasks.length === 0 ? '<div style="font-size:12px;color:rgba(0,0,0,0.35);padding:4px;">暂无任务</div>' :
+      tasks.map(t => `<div class="q-task ${t.done?'done':''}">
+        <span onclick="toggleQuadTask('${type}', ${t.id})" style="cursor:pointer;">${t.done?'✅':'⬜'} ${t.name}</span>
+        <button onclick="deleteQuadTask('${type}', ${t.id})" title="删除">✕</button>
+      </div>`).join('');
+  }
+}
+
+function focusQuadrant(qid) {
+  // 简单的聚焦提示
+  const labels = { q1: '🔥 紧急·重要 → 立即行动！', q2: '⭐ 不紧急·重要 → 规划时间去做', q3: '⚡ 紧急·不重要 → 考虑委托他人', q4: '🌙 不紧急·不重要 → 有空再做' };
+  alert(labels[qid]);
+}
+
+// ================== 倒计时 ==================
+function openCountdownModal() { document.getElementById('countdown-modal').classList.add('show'); }
+function closeCountdownModal() { document.getElementById('countdown-modal').classList.remove('show'); }
+
+function confirmCountdown() {
+  const name = document.getElementById('cd-name').value.trim();
+  const deadline = document.getElementById('cd-deadline').value;
+  const importance = document.getElementById('cd-importance').value;
+  if (!name || !deadline) return alert('请填写完整信息');
+  store.countdowns.push({
+    id: Date.now(), name, deadline: new Date(deadline).toISOString(), importance
+  });
+  store.countdowns.sort((a,b) => new Date(a.deadline) - new Date(b.deadline));
+  save('ws_countdowns', store.countdowns);
+  closeCountdownModal();
+  document.getElementById('cd-name').value = '';
+  document.getElementById('cd-deadline').value = '';
+  renderCountdowns();
+}
+
+function updateCountdowns() {
+  const cdEl = document.getElementById('countdown-list');
+  if (!cdEl) return;
+  const now = new Date();
+  cdEl.innerHTML = store.countdowns.map(c => {
+    const target = new Date(c.deadline);
+    const diff = target - now;
+    if (diff <= 0) return '';
+    const days = Math.floor(diff / 86400000);
+    const hours = Math.floor((diff % 86400000) / 3600000);
+    const mins = Math.floor((diff % 3600000) / 60000);
+    const secs = Math.floor((diff % 60000) / 1000);
+    const totalHours = diff / 3600000;
+    let cls = '';
+    if (days <= 1 || (c.importance === 'high' && days <= 3)) cls = 'urgent';
+    else if (days <= 3 || totalHours <= 48) cls = 'soon';
+    const stars = { high: '⭐⭐⭐', medium: '⭐⭐', low: '⭐' }[c.importance];
+    return `<div class="countdown-item ${cls}">
+      <div class="cd-info">
+        <div class="cd-title">${c.name}</div>
+        <div class="cd-meta">${target.toLocaleString('zh-CN')} · 重要度 ${stars}</div>
+      </div>
+      <div class="cd-time">${days > 0 ? days + '天 ' : ''}${String(hours).padStart(2,'0')}:${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}</div>
+      <button class="cd-del" onclick="deleteCountdown(${c.id})">✕</button>
+    </div>`;
+  }).filter(Boolean).join('') || '<div style="text-align:center;color:var(--text-light);padding:20px;font-size:13px;">暂无倒计时，点击右上角添加</div>';
+}
+
+function deleteCountdown(id) {
+  store.countdowns = store.countdowns.filter(c => c.id !== id);
+  save('ws_countdowns', store.countdowns);
+  renderCountdowns();
+}
+
+function renderCountdowns() { updateCountdowns(); }
+
+// ================== Todo 任务 ==================
+function switchTodoTab(tab) {
+  store.currentTodoTab = tab;
+  document.querySelectorAll('.sub-tab').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+  document.querySelectorAll('.sub-tab').forEach(t => {
+    if (t.textContent.includes({daily:'每日',short:'短期',long:'长期',occasional:'偶发'}[tab])) t.classList.add('active');
+  });
+  renderTodos();
+}
+
+function addTodoTask() {
+  const name = document.getElementById('todo-input').value.trim();
+  const priority = document.getElementById('todo-priority').value;
+  if (!name) return alert('请输入任务');
+  store.todos.push({ id: Date.now(), name, priority, type: store.currentTodoTab, done: false });
+  document.getElementById('todo-input').value = '';
+  save('ws_todos', store.todos);
+  renderTodos();
+}
+
+function toggleTodo(id) {
+  const t = store.todos.find(x => x.id === id);
+  if (t) t.done = !t.done;
+  save('ws_todos', store.todos);
+  renderTodos();
+}
+
+function deleteTodo(id) {
+  store.todos = store.todos.filter(x => x.id !== id);
+  save('ws_todos', store.todos);
+  renderTodos();
+}
+
+function renderTodos() {
+  const list = store.todos.filter(t => t.type === store.currentTodoTab);
+  const el = document.getElementById('todo-list');
+  const priColors = { high: '#fee2e2', medium: '#fef3c7', low: '#e0e7ff' };
+  const priText = { high: '高', medium: '中', low: '低' };
+  el.innerHTML = list.length === 0
+    ? '<div style="text-align:center;color:var(--text-light);padding:20px;font-size:13px;">暂无任务</div>'
+    : list.map(t => `<div class="task-item ${t.done?'done':''}">
+      <input type="checkbox" ${t.done?'checked':''} onchange="toggleTodo(${t.id})">
+      <span class="name">${t.name}</span>
+      <span class="tag" style="background:${priColors[t.priority]};">${priText[t.priority]}</span>
+      <button class="del-btn" onclick="deleteTodo(${t.id})">✕</button>
+    </div>`).join('');
+}
+
+// ================== 健康助手 ==================
+function renderWater() {
+  const el = document.getElementById('water-cups');
+  el.innerHTML = '';
+  for (let i = 0; i < 8; i++) {
+    const cup = document.createElement('div');
+    cup.className = 'water-cup' + (i < store.waterCups ? ' filled' : '');
+    cup.onclick = () => {
+      store.waterCups = i + 1;
+      save('ws_water', store.waterCups);
+      renderWater();
+    };
+    el.appendChild(cup);
+  }
+  document.getElementById('water-count').textContent = store.waterCups;
+  document.getElementById('water-ml').textContent = store.waterCups * 250;
+}
+function resetWater() { store.waterCups = 0; save('ws_water', 0); renderWater(); }
+
+function openSupplementModal() { document.getElementById('supplement-modal').classList.add('show'); }
+function closeSupplementModal() { document.getElementById('supplement-modal').classList.remove('show'); }
+function confirmSupplement() {
+  const name = document.getElementById('sp-name').value.trim();
+  const time = document.getElementById('sp-time').value;
+  if (!name) return alert('请输入补剂名称');
+  store.supplements.push({ id: Date.now(), name, time, taken: false });
+  save('ws_supplements', store.supplements);
+  closeSupplementModal();
+  document.getElementById('sp-name').value = '';
+  renderSupplements();
+}
+function toggleSupplement(id) {
+  const s = store.supplements.find(x => x.id === id);
+  if (s) s.taken = !s.taken;
+  save('ws_supplements', store.supplements);
+  renderSupplements();
+}
+function deleteSupplement(id) {
+  store.supplements = store.supplements.filter(x => x.id !== id);
+  save('ws_supplements', store.supplements);
+  renderSupplements();
+}
+function renderSupplements() {
+  const el = document.getElementById('supplement-list');
+  el.innerHTML = store.supplements.length === 0
+    ? '<div style="text-align:center;color:var(--text-light);padding:10px;font-size:12px;">暂无补剂</div>'
+    : store.supplements.map(s => `<div class="supplement-item ${s.taken?'taken':''}">
+      <span>💊 ${s.name} <span style="font-size:11px;color:var(--text-light);">(${s.time})</span></span>
+      <div style="display:flex;gap:6px;">
+        <button onclick="toggleSupplement(${s.id})">${s.taken?'已服用':'标记服用'}</button>
+        <button onclick="deleteSupplement(${s.id})" style="background:#fef2f2;color:#ef4444;">✕</button>
+      </div>
+    </div>`).join('');
+}
+
+function renderExercise() {
+  const pct = Math.min(100, Math.round(store.exercise / 60 * 100));
+  document.getElementById('exercise-fill').style.width = pct + '%';
+  document.getElementById('exercise-fill').textContent = pct + '%';
+  document.getElementById('exercise-summary').textContent = `${store.exercise} / 60 分钟`;
+}
+function addExercise(mins) {
+  store.exercise = Math.max(0, store.exercise + mins);
+  save('ws_exercise', store.exercise);
+  renderExercise();
+}
+function resetExercise() { store.exercise = 0; save('ws_exercise', 0); renderExercise(); }
+
+// ================== 学习进度 ==================
+let editingCourseId = null;
+function openCourseModal(id = null) {
+  editingCourseId = id;
+  document.getElementById('course-modal').classList.add('show');
+  if (id !== null) {
+    const c = store.courses.find(x => x.id === id);
+    if (c) {
+      document.getElementById('cr-name').value = c.name;
+      document.getElementById('cr-pct').value = c.pct;
+      document.getElementById('cr-pct-val').textContent = c.pct + '%';
+    }
+  } else {
+    document.getElementById('cr-name').value = '';
+    document.getElementById('cr-pct').value = 0;
+    document.getElementById('cr-pct-val').textContent = '0%';
+  }
+}
+function closeCourseModal() { document.getElementById('course-modal').classList.remove('show'); }
+function confirmCourse() {
+  const name = document.getElementById('cr-name').value.trim();
+  const pct = parseInt(document.getElementById('cr-pct').value);
+  if (!name) return alert('请输入课程名称');
+  if (editingCourseId !== null) {
+    const c = store.courses.find(x => x.id === editingCourseId);
+    if (c) { c.name = name; c.pct = pct; }
+  } else {
+    store.courses.push({ id: Date.now(), name, pct });
+  }
+  save('ws_courses', store.courses);
+  closeCourseModal();
+  renderCourses();
+}
+function deleteCourse(id) {
+  if (!confirm('确定删除这门课程？')) return;
+  store.courses = store.courses.filter(c => c.id !== id);
+  save('ws_courses', store.courses);
+  renderCourses();
+}
+function adjustCoursePct(id, delta) {
+  const c = store.courses.find(x => x.id === id);
+  if (c) { c.pct = Math.max(0, Math.min(100, c.pct + delta)); save('ws_courses', store.courses); renderCourses(); }
+}
+function renderCourses() {
+  const el = document.getElementById('course-list');
+  el.innerHTML = store.courses.length === 0
+    ? '<div style="text-align:center;color:var(--text-light);padding:30px;font-size:13px;">还没有课程，点击上方添加</div>'
+    : store.courses.map(c => {
+        let cls = '';
+        if (c.pct < 30) cls = 'low';
+        else if (c.pct < 60) cls = 'warn';
+        return `<div class="course-item">
+          <div class="course-header">
+            <span class="course-name">📚 ${c.name}</span>
+            <span class="course-pct">${c.pct}%</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill ${cls}" style="width:${c.pct}%"></div></div>
+          <div class="course-actions">
+            <button onclick="adjustCoursePct(${c.id}, 5)">+5%</button>
+            <button onclick="adjustCoursePct(${c.id}, -5)">-5%</button>
+            <button onclick="openCourseModal(${c.id})">编辑</button>
+            <button onclick="deleteCourse(${c.id})" style="color:var(--danger);border-color:#fecaca;">删除</button>
+          </div>
+        </div>`;
+      }).join('');
+}
+
+// ================== 考研倒计时 ==================
+function renderKaoyan() {
+  const target = new Date(store.kaoyanDate + 'T00:00:00');
+  const now = new Date();
+  const diff = Math.ceil((target - now) / 86400000);
+  document.getElementById('ky-days').innerHTML = diff > 0 ? `${diff}<span class="unit">天</span>` : '已结束';
+  document.getElementById('ky-date').textContent = `考试日期：${store.kaoyanDate}（${target.toLocaleDateString('zh-CN',{weekday:'long'})}）`;
+  document.getElementById('ky-goal-input').value = store.kaoyanGoal;
+  if (store.kaoyanGoal) {
+    document.getElementById('ky-goal-display').textContent = '🎯 ' + store.kaoyanGoal;
+    document.getElementById('ky-goal-display').style.display = 'block';
+    document.getElementById('ky-goal-input').style.display = 'none';
+  } else {
+    document.getElementById('ky-goal-display').style.display = 'none';
+    document.getElementById('ky-goal-input').style.display = 'block';
+  }
+}
+function saveKaoyanGoal() {
+  const val = document.getElementById('ky-goal-input').value.trim();
+  store.kaoyanGoal = val;
+  save('ws_ky_goal', val);
+  renderKaoyan();
+}
+function searchKaoyan() {
+  const q = document.getElementById('ky-search').value.trim();
+  if (!q) return alert('请输入搜索内容');
+  window.open(`https://www.bing.com/search?q=${encodeURIComponent(q + ' 考研')}`, '_blank');
+}
+
+// ================== 学习任务 ==================
+function addStudyTask() {
+  const name = document.getElementById('st-name').value.trim();
+  const deadline = document.getElementById('st-deadline').value;
+  const priority = document.getElementById('st-priority').value;
+  if (!name) return alert('请输入任务名称');
+  store.studyTasks.push({ id: Date.now(), name, deadline, priority, done: false });
+  save('ws_studytasks', store.studyTasks);
+  renderStudyTasks();
+}
+function toggleStudyTask(id) {
+  const t = store.studyTasks.find(x => x.id === id);
+  if (t) t.done = !t.done;
+  save('ws_studytasks', store.studyTasks);
+  renderStudyTasks();
+}
+function deleteStudyTask(id) {
+  store.studyTasks = store.studyTasks.filter(x => x.id !== id);
+  save('ws_studytasks', store.studyTasks);
+  renderStudyTasks();
+}
+function renderStudyTasks() {
+  const now = new Date();
+  const el = document.getElementById('study-task-list');
+  const sorted = [...store.studyTasks].sort((a,b) => (a.deadline||'').localeCompare(b.deadline||''));
+  el.innerHTML = sorted.length === 0
+    ? '<div style="text-align:center;color:var(--text-light);padding:20px;font-size:13px;">暂无学习任务</div>'
+    : sorted.map(t => {
+        let cls = '';
+        let timeStr = '';
+        if (t.deadline) {
+          const dl = new Date(t.deadline + 'T23:59:59');
+          const daysLeft = Math.ceil((dl - now) / 86400000);
+          timeStr = `截止 ${t.deadline}（剩 ${daysLeft}天）`;
+          if (daysLeft <= 1 || t.priority === 'high') cls = 'urgent';
+          else if (daysLeft <= 3) cls = 'soon';
+        }
+        const priText = { high: '🔴', medium: '🟡', low: '🟢' }[t.priority];
+        return `<div class="study-task-item ${cls} ${t.done?'done':''}">
+          <input type="checkbox" ${t.done?'checked':''} onchange="toggleStudyTask(${t.id})">
+          <div class="info">
+            <div class="st-name">${priText} ${t.name}</div>
+            <div class="st-meta">${timeStr}</div>
+          </div>
+          <button class="st-del" onclick="deleteStudyTask(${t.id})">✕</button>
+        </div>`;
+      }).join('');
+}
+
+// ================== 学习通消息 ==================
+function refreshChaoxing() {
+  // 模拟刷新 - 显示加载动画
+  const el = document.getElementById('chaoxing-messages');
+  el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-light);font-size:13px;">🔄 正在加载...</div>';
+  setTimeout(() => {
+    // 模拟随机插入一条新消息
+    if (Math.random() > 0.6) {
+      const newMsgs = [
+        { title: '测试', content: '有一份新的待办作业', time: '刚刚', unread: true },
+        { title: '高等数学', content: '本周作业已发布，请及时完成', time: '10分钟前', unread: true },
+        { title: '班级通知', content: '周五下午召开班会', time: '1小时前', unread: false },
+      ];
+      store.chaoxingMsgs.unshift(newMsgs[Math.floor(Math.random()*newMsgs.length)]);
+      save('ws_chaoxing', store.chaoxingMsgs);
+    }
+    renderChaoxing();
+  }, 600);
+}
+function addChaoxingMsg() {
+  const title = document.getElementById('cx-new-title').value.trim();
+  const content = document.getElementById('cx-new-content').value.trim();
+  if (!title) return alert('请输入标题');
+  store.chaoxingMsgs.unshift({
+    id: Date.now(), title, content, time: '刚刚', unread: true
+  });
+  save('ws_chaoxing', store.chaoxingMsgs);
+  document.getElementById('cx-new-title').value = '';
+  document.getElementById('cx-new-content').value = '';
+  renderChaoxing();
+}
+function toggleCxMsg(id) {
+  const m = store.chaoxingMsgs.find(x => x.id === id);
+  if (m) m.unread = !m.unread;
+  save('ws_chaoxing', store.chaoxingMsgs);
+  renderChaoxing();
+}
+function deleteCxMsg(id) {
+  store.chaoxingMsgs = store.chaoxingMsgs.filter(x => x.id !== id);
+  save('ws_chaoxing', store.chaoxingMsgs);
+  renderChaoxing();
+}
+function renderChaoxing() {
+  const el = document.getElementById('chaoxing-messages');
+  if (store.chaoxingMsgs.length === 0) {
+    el.innerHTML = '<div class="chaoxing-empty">暂无消息</div>';
+    return;
+  }
+  el.innerHTML = store.chaoxingMsgs.map(m => {
+    const unread = m.unread ? 'unread' : '';
+    return `<div class="chaoxing-msg ${unread}">
+      <div class="msg-title">${m.title} <button onclick="toggleCxMsg(${m.id})" style="border:none;background:transparent;cursor:pointer;font-size:11px;color:var(--primary);margin-left:6px;">${m.unread?'标为已读':'标为未读'}</button><button onclick="deleteCxMsg(${m.id})" style="border:none;background:transparent;cursor:pointer;font-size:11px;color:var(--danger);float:right;">删除</button></div>
+      <div class="msg-content">${m.content || ''}</div>
+      <div class="msg-time">⏰ ${m.time || ''}</div>
+    </div>`;
+  }).join('');
+}
+
+// ================== 全量渲染 ==================
+function renderAll() {
+  renderQuadrant();
+  renderCountdowns();
+  renderTodos();
+  renderWater();
+  renderSupplements();
+  renderExercise();
+  renderCourses();
+  renderKaoyan();
+  renderStudyTasks();
+  renderChaoxing();
+}
+
+// 启动
+init();
+</script>
+</body>
+</html>
