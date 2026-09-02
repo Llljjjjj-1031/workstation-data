@@ -947,6 +947,8 @@ const GH_API = `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${G
 
 function getGHToken() { return localStorage.getItem('gh_token') || ''; }
 function setGHToken(t) { localStorage.setItem('gh_token', t); }
+function getLocalTS() { return parseInt(localStorage.getItem('ws_ts') || '0'); }
+function setLocalTS(ts) { localStorage.setItem('ws_ts', String(ts)); }
 
 let _syncTimer = null;
 function scheduleSync() {
@@ -957,17 +959,20 @@ async function syncUpload() {
   const tok = getGHToken();
   if (!tok) return;
   try {
+    const ts = Date.now();
+    const payload = {...store, _timestamp: ts};
     let sha = '';
     try {
       const res = await fetch(GH_API, { headers: { 'Authorization': `token ${tok}`, 'Accept': 'application/vnd.github.v3+json' } });
       if (res.ok) { const d = await res.json(); sha = d.sha; }
     } catch(e) {}
-    const content = btoa(unescape(encodeURIComponent(JSON.stringify(store))));
-    await fetch(GH_API, {
+    const content = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+    const r = await fetch(GH_API, {
       method: 'PUT',
       headers: { 'Authorization': `token ${tok}`, 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
       body: JSON.stringify({ message: 'sync', content: content, sha: sha || undefined })
     });
+    if (r.ok) { setLocalTS(ts); }
   } catch(e) {}
 }
 async function syncLoad() {
@@ -978,8 +983,24 @@ async function syncLoad() {
     if (res.ok) {
       const d = await res.json();
       const remote = JSON.parse(decodeURIComponent(escape(atob(d.content))));
-      if (remote && Object.keys(remote).length > 0) {
+      const remoteTS = remote._timestamp || 0;
+      const localTS = getLocalTS();
+      if (remoteTS > localTS && remote && Object.keys(remote).length > 0) {
+        delete remote._timestamp;
         Object.assign(store, remote);
+        // 保存到 localStorage（不触发 sync）
+        localStorage.setItem('ws_quadrant', JSON.stringify(store.quadrant));
+        localStorage.setItem('ws_countdowns', JSON.stringify(store.countdowns));
+        localStorage.setItem('ws_todos', JSON.stringify(store.todos));
+        localStorage.setItem('ws_water', JSON.stringify(store.waterCups));
+        localStorage.setItem('ws_supplements', JSON.stringify(store.supplements));
+        localStorage.setItem('ws_exercise', JSON.stringify(store.exercise));
+        localStorage.setItem('ws_courses', JSON.stringify(store.courses));
+        localStorage.setItem('ws_ky_date', JSON.stringify(store.kaoyanDate));
+        localStorage.setItem('ws_ky_goal', JSON.stringify(store.kaoyanGoal));
+        localStorage.setItem('ws_studytasks', JSON.stringify(store.studyTasks));
+        localStorage.setItem('ws_chaoxing', JSON.stringify(store.chaoxingMsgs));
+        setLocalTS(remoteTS);
       }
     }
   } catch(e) {}
