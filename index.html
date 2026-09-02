@@ -923,7 +923,7 @@ const store = {
   chaoxingMsgs: loadJSON('ws_chaoxing', []),
 };
 
-function save(key, val) { localStorage.setItem(key, JSON.stringify(val)); }
+function save(key, val) { localStorage.setItem(key, JSON.stringify(val)); scheduleSync(); }
 function saveAll() {
   save('ws_quadrant', store.quadrant);
   save('ws_countdowns', store.countdowns);
@@ -1020,6 +1020,9 @@ async function init() {
   renderAll();
   setInterval(updateCountdowns, 1000);
   setInterval(updateTime, 1000);
+  // 页面关闭/隐藏时强制同步一次
+  window.addEventListener('beforeunload', () => syncUpload());
+  document.addEventListener('visibilitychange', () => { if (document.hidden) syncUpload(); });
 }
 
 function getNextKaoyanDate() {
